@@ -1,0 +1,21 @@
+Changes
+inc/Module/Install.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/Makefile.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
+lib/DBIx/Class/BitField.pm
+lib/DBIx/Class/ResultSet/BitField.pm
+Makefile.PL
+MANIFEST			This list of files
+META.yml
+README
+t/accessor.t
+t/crud.t
+t/lib/Schema.pm
+t/load.t
+t/search.t
+t/unit.t

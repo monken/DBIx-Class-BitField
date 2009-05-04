@@ -7,7 +7,7 @@ use Carp;
 
 use base 'DBIx::Class';
 
-our $VERSION = 0.00_01;
+our $VERSION = '0.00_01';
 
 sub register_column {
   my ($self, $column, $info, @rest) = @_;
