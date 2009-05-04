@@ -7,6 +7,8 @@ use Carp;
 
 use base 'DBIx::Class';
 
+our $VERSION = 0.00_01;
+
 sub register_column {
   my ($self, $column, $info, @rest) = @_;
   
@@ -142,13 +144,13 @@ DBIx::Class::BitField - Store multiple boolean fields in one integer field
   __PACKAGE__->add_columns(
     id     =>   { data_type => 'integer' },
     status =>   { data_type => 'integer', 
-                  bitfield => [qw(active inactive foo bar)] 
+                  bitfield => [qw(active inactive foo bar)],
     },
     advanced_status => { data_type => 'integer', 
                          bitfield => [qw(1 2 3 4)], 
                          bitfield_prefix => 'status_', 
                          accessor => '_foobar',
-                         is_nullable => 1
+                         is_nullable => 1,
     },
 
   );
@@ -250,9 +252,22 @@ This will update the status of all items in the result set to C<active>. This wi
 
 =head3 search_bitfield
 
+To search a result set for a specific value of the bitfield use C<search_bitfield>.
+
+You can either make a OR search:
+
+  $rs->search_bitfield([ status2 => 1, status3 => 1 ]);
+
+or AND:
+
+  $rs->search_bitfield({ status2 => 1, status3 => 0 });
+
+This method uses bitwise operators in SQL. Depending on your database it is possible to create an index so
+the search is as fast as using a single boolean column.
+
 =head1 AUTHOR
 
-Moritz Onken, C<< onken@netcubed.de >>
+Moritz Onken <onken@netcubed.de>
 
 =head1 LICENSE
 
