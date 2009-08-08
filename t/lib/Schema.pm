@@ -36,7 +36,6 @@ __PACKAGE__->load_classes('Item');
 
 sub connect {
   my $class = shift;
-  unlink('t/test.db') if(-e 't/test.db');
   my $schema = $class->next::method('dbi:SQLite::memory:');
   $schema->deploy;
   return $schema;

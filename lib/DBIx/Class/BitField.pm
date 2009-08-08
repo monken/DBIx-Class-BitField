@@ -7,7 +7,7 @@ use Carp;
 
 use base 'DBIx::Class';
 
-our $VERSION = '0.00_01';
+our $VERSION = '0.10';
 
 sub register_column {
   my ($self, $column, $info, @rest) = @_;
@@ -17,6 +17,7 @@ sub register_column {
     
   $info->{accessor} ||= '_'.$column;
   $info->{default_value} = 0;
+  $info->{is_numeric} = 0;
   
   $self->next::method($column, $info, @rest);
   
@@ -199,6 +200,9 @@ A bit field is a way to store multiple bit values on one integer field.
 The main benefit from this module is that you can add additional attributes to your result class whithout the need to 
 deploy or change the schema on the data base.
 
+B<This module encourages to not normalize your schema. You should consider a C<has_many> relationship to a table which holds
+all the flags instead of this module.>
+
 =head2 Example
 
 A bit field C<status> with C<data_type> set to C<int> or C<integer> (case insensitive) and C<active, inactive, deleted> will create
@@ -208,17 +212,20 @@ the following accessors:
 
 =item C<< $row->status >>
 
-This is B<not> the value which is stored in the database. This accessor returns the status as an array ref. Even if there is
-only one value in it. You can set them as well:
+This is B<not> the value which is stored in the database. This accessor returns the status as an array ref. 
+The array ref is empty if no status is applied. 
+
+You can use this method to set the value as well:
 
   $row->status(['active', 'inactive']);
   # $row->status == ['active', 'inactive']
 
 =item C<< $row->active >>, C<< $row->inactive >>, C<< $row->deleted >>
 
-These accessors return either C<1> or C<0>. It will act like normal column accessors if you add a parameter by returning that value.
+These accessors return either C<1> or C<0>. If you add a parameter they will act like normal column accessors by returning that value.
 
-  $row->active(1);
+  my $foo = $row->active(1);
+  # $foo         == 1
   # $row->active == 1
   # $row->status == ['active']
 
@@ -231,11 +238,12 @@ This accessor will hold the internal integer representation if the bit field.
   
 You can change the name of the accessor via the C<accessor> attribute:
 
-__PACKAGE__->add_columns(
-  status =>   { data_type => 'integer', 
-                bitfield  => [qw(active inactive deleted)],
-                accessor  => '_status_accessor',
-  },
+  __PACKAGE__->add_columns(
+      status =>   { data_type => 'integer', 
+                    bitfield  => [qw(active inactive deleted)],
+                    accessor  => '_status_accessor',
+      },
+  );
 
 =back
 
@@ -244,11 +252,13 @@ __PACKAGE__->add_columns(
 In order to use result set operations like C<search> or C<update> you need to set the result set class to
 C<DBIx::Class::ResultSet::BitField> or to a class which inherits from it.
 
+  __PACKAGE__->resultset_class('DBIx::Class::ResultSet::BitField');
+
 =head3 update
 
   $rs->update({ status => ['active'] });
 
-This will update the status of all items in the result set to C<active>. This will use a single SQL query only.
+This will update the status of all items in the result set to C<active>. This will create a single SQL query only.
 
 =head3 search_bitfield
 
@@ -256,22 +266,12 @@ To search a result set for a specific value of the bitfield use C<search_bitfiel
 
 You can either make a OR search:
 
-  $rs->search_bitfield([ status2 => 1, status3 => 1 ]);
+  my $new_rs = $rs->search_bitfield([ status2 => 1, status3 => 1 ]);
 
 or AND:
 
-  $rs->search_bitfield({ status2 => 1, status3 => 0 });
+  my $new_rs = $rs->search_bitfield({ status2 => 1, status3 => 1 });
 
 This method uses bitwise operators in SQL. Depending on your database it is possible to create an index so
 the search is as fast as using a single boolean column.
 
-=head1 AUTHOR
-
-Moritz Onken <onken@netcubed.de>
-
-=head1 LICENSE
-
-Copyright 2009 Moritz Onken, all rights reserved.
-
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
