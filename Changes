@@ -1,2 +1,5 @@
-0.00_01 2009-05-04
-  - initial release
+0.12 2009-08-16
+  - fixed bug where accessors where created in the wrong namespace (thanks harshal.shah@gmail.com)
+
+0.11 2009-08-10
+  - fixed test failure

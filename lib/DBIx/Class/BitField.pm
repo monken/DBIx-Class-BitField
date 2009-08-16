@@ -7,8 +7,6 @@ use Carp;
 
 use base 'DBIx::Class';
 
-our $VERSION = '0.10';
-
 sub register_column {
   my ($self, $column, $info, @rest) = @_;
   
@@ -30,17 +28,17 @@ sub register_column {
     my $i = 0;
     no strict qw(refs);
     foreach my $field (@fields) {
-      if($self->can($prefix.$field)) {
+      if($self->can($prefix.$field) && 1 == 0) {
         carp 'Bitfield accessor '.$prefix.$field.' cannot be created since there is an accessor of that name already';
         $i++;
         next;
       }
       my $bit = 2**$i;
-      *{$prefix.$field} = sub { shift->__bitfield_item($field, $bit, $info->{accessor}, @_) };
+      *{$self.'::'.$prefix.$field} = sub { shift->__bitfield_item($field, $bit, $info->{accessor}, @_) };
       $i++;
     }
     
-    *{$column} = sub { shift->__bitfield($column, $info->{accessor}, \@fields, @_) };
+    *{$self.'::'.$column} = sub { shift->__bitfield($column, $info->{accessor}, \@fields, @_) };
   }
   
   
@@ -231,7 +229,7 @@ These accessors return either C<1> or C<0>. If you add a parameter they will act
 
 =item C<< $row->_status >>
 
-This accessor will hold the internal integer representation if the bit field.
+This accessor will hold the internal integer representation of the bit field.
 
   $row->status(['active', 'inactive']);
   # $row->_status == 3
@@ -258,7 +256,7 @@ C<DBIx::Class::ResultSet::BitField> or to a class which inherits from it.
 
   $rs->update({ status => ['active'] });
 
-This will update the status of all items in the result set to C<active>. This will create a single SQL query only.
+This will update the status of all items in the result to C<active>. This is done in a single SQL query.
 
 =head3 search_bitfield
 
